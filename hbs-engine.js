@@ -12,7 +12,7 @@
 
 "use strict";
 
-var hbs = require('hbs');
+const hbs = require('handlebars');
 
 hbs.registerHelper('sample', function(value) {
   return value;
