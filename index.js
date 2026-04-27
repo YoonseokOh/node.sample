@@ -15,38 +15,53 @@
 
 const path = require('path');
 const express = require('express');
-const exphbs = require('express-handlebars');
 const app = express();
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
-const hbs = require('./hbs-engine');
+const helmet = require('helmet');
 
 require('./app/globals/constants');
 
 // Middle-ware
 const compression = require('compression');
-const minify = require('express-minify');
 
 app.disable('x-powered-by');
 
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      baseUri: ["'self'"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", 'data:'],
+      formAction: ["'self'"],
+      frameAncestors: ["'self'"],
+      imgSrc: ["'self'", 'data:'],
+      objectSrc: ["'none'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      upgradeInsecureRequests: null
+    }
+  },
+  crossOriginEmbedderPolicy: false,
+  hsts: {
+    maxAge: 31536000,
+    includeSubDomains: true,
+    preload: true
+  },
+  referrerPolicy: {
+    policy: 'no-referrer'
+  }
+}));
 app.use(compression());
-app.use(minify());
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '/public')));
-
-// Set view engine ( hbs : handlebars )
+app.use(express.static(path.join(__dirname, '/dist')));
 app.set('trust proxy', 'loopback');
-app.engine('.hbs', exphbs.engine({
-  defaultLayout: 'default',
-  extname: '.hbs',
-  layoutsDir: path.join(__dirname, 'app/views/layouts')
-}));
-app.set('view engine', '.hbs');
-app.set('views', __dirname + '/app/views');
 
 // Set pre route
 require('./app/globals/pre-route')(app);
